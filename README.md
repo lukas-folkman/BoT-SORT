@@ -72,7 +72,7 @@ The code was tested using torch 1.11.0+cu113 and torchvision==0.12.0
 
 **Step 3.** Install BoT-SORT.
 ```shell
-git clone https://github.com/NirAharon/BoT-SORT.git
+git clone https://github.com/lukas-folkman/BoT-SORT.git
 cd BoT-SORT
 pip install -r requirements.txt
 python setup.py develop
