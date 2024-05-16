@@ -14,10 +14,10 @@ from fast_reid.fast_reid_interfece import FastReIDInterface
 class STrack(BaseTrack):
     shared_kalman = KalmanFilter()
 
-    def __init__(self, tlwh, score, cls, feat=None, feat_history=50):
+    def __init__(self, tlwh, score, cls, idx=None, feat=None, feat_history=50):
 
         # wait activate
-        self._tlwh = np.asarray(tlwh, dtype=np.float)
+        self._tlwh = np.asarray(tlwh, dtype=float)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
         self.is_activated = False
@@ -25,6 +25,7 @@ class STrack(BaseTrack):
         self.cls = -1
         self.cls_hist = []  # (cls id, freq)
         self.update_cls(cls, score)
+        self.idx = idx
 
         self.score = score
         self.tracklet_len = 0
@@ -133,6 +134,7 @@ class STrack(BaseTrack):
         self.score = new_track.score
 
         self.update_cls(new_track.cls, new_track.score)
+        self.idx = new_track.idx
 
     def update(self, new_track, frame_id):
         """
@@ -157,6 +159,7 @@ class STrack(BaseTrack):
 
         self.score = new_track.score
         self.update_cls(new_track.cls, new_track.score)
+        self.idx = new_track.idx
 
     @property
     def tlwh(self):
@@ -262,6 +265,8 @@ class BoTSORT(object):
 
         if len(output_results):
             bboxes = output_results[:, :4]
+            # LF HACK: matching back to detections
+            bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
             scores = output_results[:, 4]
             classes = output_results[:, 5]
             features = output_results[:, 6:]
@@ -289,16 +294,18 @@ class BoTSORT(object):
 
         '''Extract embeddings '''
         if self.args.with_reid:
-            features_keep = self.encoder.inference(img, dets)
+            features_keep = self.encoder.inference(img, dets[:, :4] if len(dets) > 0 else [])
 
         if len(dets) > 0:
             '''Detections'''
             if self.args.with_reid:
-                detections = [STrack(STrack.tlbr_to_tlwh(tlbr), s, c, f) for
-                              (tlbr, s, c, f) in zip(dets, scores_keep, classes_keep, features_keep)]
+                # LF HACK: matching back to detections
+                detections = [STrack(tlwh=STrack.tlbr_to_tlwh(tlbr), score=s, cls=c, idx=idx, feat=f) for
+                              (tlbr, s, c, idx, f) in zip(dets[:, :4], scores_keep, classes_keep, dets[:, 4], features_keep)]
             else:
-                detections = [STrack(STrack.tlbr_to_tlwh(tlbr), s, c) for
-                              (tlbr, s, c) in zip(dets, scores_keep, classes_keep)]
+                # LF HACK: matching back to detections
+                detections = [STrack(tlwh=STrack.tlbr_to_tlwh(tlbr), score=s, cls=c, idx=idx) for
+                              (tlbr, s, c, idx) in zip(dets[:, :4], scores_keep, classes_keep, dets[:, 4])]
         else:
             detections = []
 
@@ -318,7 +325,7 @@ class BoTSORT(object):
         STrack.multi_predict(strack_pool)
 
         # Fix camera motion
-        warp = self.gmc.apply(img, dets)
+        warp = self.gmc.apply(img, dets[:, :4] if len(dets) > 0 else [])
         STrack.multi_gmc(strack_pool, warp)
         STrack.multi_gmc(unconfirmed, warp)
 
@@ -375,8 +382,9 @@ class BoTSORT(object):
         # association the untrack to the low score detections
         if len(dets_second) > 0:
             '''Detections'''
-            detections_second = [STrack(STrack.tlbr_to_tlwh(tlbr), s, c) for
-                                 (tlbr, s, c) in zip(dets_second, scores_second, classes_second)]
+            # LF HACK: matching back to detections
+            detections_second = [STrack(tlwh=STrack.tlbr_to_tlwh(tlbr), score=s, cls=c, idx=idx) for
+                                 (tlbr, s, c, idx) in zip(dets_second[:, :4], scores_second, classes_second, dets_second[:, 4])]
         else:
             detections_second = []
 
