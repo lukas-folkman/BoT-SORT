@@ -74,22 +74,23 @@ The code was tested using torch 1.11.0+cu113 and torchvision==0.12.0
 ```shell
 git clone https://github.com/NirAharon/BoT-SORT.git
 cd BoT-SORT
-pip3 install -r requirements.txt
-python3 setup.py develop
+pip install -r requirements.txt
+python setup.py develop
 ```
 **Step 4.** Install [pycocotools](https://github.com/cocodataset/cocoapi).
 ```shell
-pip3 install cython; pip3 install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
+pip install cython
+pip install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
 ```
 
 Step 5. Others
 ```shell
 # Cython-bbox
-pip3 install cython_bbox
+pip install cython_bbox
 
 # faiss cpu / gpu
-pip3 install faiss-cpu
-pip3 install faiss-gpu
+pip install faiss-cpu
+pip install faiss-gpu
 ```
 
 ## Data Preparation
@@ -114,10 +115,10 @@ For training the ReID, detection patches must be generated as follows:
 cd <BoT-SORT_dir>
 
 # For MOT17 
-python3 fast_reid/datasets/generate_mot_patches.py --data_path <dataets_dir> --mot 17
+python fast_reid/datasets/generate_mot_patches.py --data_path <dataets_dir> --mot 17
 
 # For MOT20
- python3 fast_reid/datasets/generate_mot_patches.py --data_path <dataets_dir> --mot 20
+ python fast_reid/datasets/generate_mot_patches.py --data_path <dataets_dir> --mot 20
 ```
 Link dataset to FastReID ```export FASTREID_DATASETS=<BoT-SORT_dir>/fast_reid/datasets```. If left unset, the default is `fast_reid/datasets` 
  
@@ -147,10 +148,10 @@ After generating MOT ReID dataset as described in the 'Data Preparation' section
 cd <BoT-SORT_dir>
 
 # For training MOT17 
-python3 fast_reid/tools/train_net.py --config-file ./fast_reid/configs/MOT17/sbs_S50.yml MODEL.DEVICE "cuda:0"
+python fast_reid/tools/train_net.py --config-file ./fast_reid/configs/MOT17/sbs_S50.yml MODEL.DEVICE "cuda:0"
 
 # For training MOT20
-python3 fast_reid/tools/train_net.py --config-file ./fast_reid/configs/MOT20/sbs_S50.yml MODEL.DEVICE "cuda:0"
+python fast_reid/tools/train_net.py --config-file ./fast_reid/configs/MOT20/sbs_S50.yml MODEL.DEVICE "cuda:0"
 ```
 
 Refer to [FastReID](https://github.com/JDAI-CV/fast-reid)  repository for addition explanations and options.
@@ -164,16 +165,16 @@ Tuning the tracking parameters carefully could lead to higher performance. In th
 
 ```shell
 cd <BoT-SORT_dir>
-python3 tools/track.py <dataets_dir/MOT17> --default-parameters --with-reid --benchmark "MOT17" --eval "test" --fp16 --fuse
-python3 tools/interpolation.py --txt_path <path_to_track_result>
+python tools/track.py <dataets_dir/MOT17> --default-parameters --with-reid --benchmark "MOT17" --eval "test" --fp16 --fuse
+python tools/interpolation.py --txt_path <path_to_track_result>
 ```
 
 * **Test on MOT20**
 
 ```shell
 cd <BoT-SORT_dir>
-python3 tools/track.py <dataets_dir/MOT20> --default-parameters --with-reid --benchmark "MOT20" --eval "test" --fp16 --fuse
-python3 tools/interpolation.py --txt_path <path_to_track_result>
+python tools/track.py <dataets_dir/MOT20> --default-parameters --with-reid --benchmark "MOT20" --eval "test" --fp16 --fuse
+python tools/interpolation.py --txt_path <path_to_track_result>
 ```
 
 * **Evaluation on MOT17 validation set (the second half of the train set)**
@@ -182,10 +183,10 @@ python3 tools/interpolation.py --txt_path <path_to_track_result>
 cd <BoT-SORT_dir>
 
 # BoT-SORT
-python3 tools/track.py <dataets_dir/MOT17> --default-parameters --benchmark "MOT17" --eval "val" --fp16 --fuse
+python tools/track.py <dataets_dir/MOT17> --default-parameters --benchmark "MOT17" --eval "val" --fp16 --fuse
 
 # BoT-SORT-ReID
-python3 tools/track.py <dataets_dir/MOT17> --default-parameters --with-reid --benchmark "MOT17" --eval "val" --fp16 --fuse
+python tools/track.py <dataets_dir/MOT17> --default-parameters --with-reid --benchmark "MOT17" --eval "val" --fp16 --fuse
 ```
 
 * **Other experiments**
@@ -195,7 +196,7 @@ For evaluating the train and validation sets we recommend using the official MOT
 
 ```shell
 # For all the available tracking parameters, see:
-python3 tools/track.py -h 
+python tools/track.py -h 
 ```
 
 * **Experiments with YOLOv7**
@@ -205,7 +206,7 @@ For evaluating the train and validation sets we recommend using the official MOT
 
 ```shell
 # For all the available tracking parameters, see:
-python3 tools/track_yolov7.py -h 
+python tools/track_yolov7.py -h 
 ```
 
 ## Demo
@@ -216,16 +217,16 @@ Demo with BoT-SORT(-ReID) based YOLOX and multi-class.
 cd <BoT-SORT_dir>
 
 # Original example
-python3 tools/demo.py video --path <path_to_video> -f yolox/exps/example/mot/yolox_x_mix_det.py -c pretrained/bytetrack_x_mot17.pth.tar --with-reid --fuse-score --fp16 --fuse --save_result
+python tools/demo.py video --path <path_to_video> -f yolox/exps/example/mot/yolox_x_mix_det.py -c pretrained/bytetrack_x_mot17.pth.tar --with-reid --fuse-score --fp16 --fuse --save_result
 
 # Multi-class example
-python3 tools/mc_demo.py video --path <path_to_video> -f yolox/exps/example/mot/yolox_x_mix_det.py -c pretrained/bytetrack_x_mot17.pth.tar --with-reid --fuse-score --fp16 --fuse --save_result
+python tools/mc_demo.py video --path <path_to_video> -f yolox/exps/example/mot/yolox_x_mix_det.py -c pretrained/bytetrack_x_mot17.pth.tar --with-reid --fuse-score --fp16 --fuse --save_result
 ```
 
 Demo with BoT-SORT(-ReID) based YOLOv7 and multi-class.
 ```shell
 cd <BoT-SORT_dir>
-python3 tools/mc_demo_yolov7.py --weights pretrained/yolov7-d6.pt --source <path_to_video/images> --fuse-score --agnostic-nms (--with-reid)
+python tools/mc_demo_yolov7.py --weights pretrained/yolov7-d6.pt --source <path_to_video/images> --fuse-score --agnostic-nms (--with-reid)
 ```
 
 ## Note
